@@ -209,7 +209,12 @@ pub struct ModuleExt {
 }
 
 impl ModuleExt {
-    pub fn parse_module_from_file(file_name: &str) -> Result<ModuleExt> {
+    /// # Parse a module file returning a [`ModuleExt`]
+    ///
+    /// # Errors
+    /// Can return an `anyhow` Error if the file cannot be read or deserialized
+    /// into a [`ModuleExt`]
+    pub fn parse_module_from_file(file_name: &str) -> Result<Self> {
         let file_path = PathBuf::from("config").join(file_name);
         let file_path = if file_path.is_absolute() {
             file_path
@@ -217,13 +222,13 @@ impl ModuleExt {
             std::env::current_dir()?.join(file_path)
         };
 
-        let file = fs::read_to_string(file_path.clone())?;
+        let file = fs::read_to_string(file_path)?;
 
-        serde_yaml::from_str::<ModuleExt>(&file).map_or_else(
-            |_| -> Result<ModuleExt> {
+        serde_yaml::from_str::<Self>(&file).map_or_else(
+            |_| -> Result<Self> {
                 let module =
                     serde_yaml::from_str::<Module>(&file).map_err(ops::serde_yaml_err(&file))?;
-                Ok(ModuleExt::builder().modules(vec![module]).build())
+                Ok(Self::builder().modules(vec![module]).build())
             },
             Ok,
         )
@@ -246,21 +251,21 @@ pub struct Module {
 }
 
 impl Module {
+    #[must_use]
     pub fn get_modules(modules: &[Self]) -> Vec<Self> {
         modules
             .iter()
             .flat_map(|module| {
-                if let Some(file_name) = &module.from_file {
-                    match ModuleExt::parse_module_from_file(file_name) {
+                module.from_file.as_ref().map_or_else(
+                    || vec![module.clone()],
+                    |file_name| match ModuleExt::parse_module_from_file(file_name) {
                         Err(e) => {
                             error!("Failed to get module from {file_name}: {e}");
                             vec![]
                         }
                         Ok(module_ext) => Self::get_modules(&module_ext.modules),
-                    }
-                } else {
-                    vec![module.clone()]
-                }
+                    },
+                )
             })
             .collect()
     }
