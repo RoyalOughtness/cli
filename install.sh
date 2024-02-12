@@ -8,7 +8,7 @@ function cleanup() {
   echo "Cleaning up image"
   sudo podman stop -i -t 0 blue-build-installer
   sleep 2
-  sudo podman image rm ghcr.io/blue-build/cli:latest-installer
+  sudo podman image rm ghcr.io/blue-build/cli:v0.7.0-installer
 }
 
 trap cleanup SIGINT
@@ -19,7 +19,7 @@ sudo podman run \
   --detach \
   --rm \
   --name blue-build-installer \
-  ghcr.io/blue-build/cli:latest-installer \
+  ghcr.io/blue-build/cli:v0.7.0-installer \
   tail -f /dev/null
 
 set +e
