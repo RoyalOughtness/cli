@@ -1,10 +1,10 @@
 VERSION 0.8
-PROJECT blue-build/cli
+PROJECT royaloughtness/cli
 
 IMPORT github.com/blue-build/earthly-lib/rust AS rust
 # IMPORT ../earthly-lib/rust AS rust
 
-ARG --global IMAGE=ghcr.io/blue-build/cli
+ARG --global IMAGE=ghcr.io/royaloughtness/cli
 ARG --global TAGGED="false"
 ARG --global LATEST="false"
 
